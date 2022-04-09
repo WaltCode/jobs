@@ -1,6 +1,7 @@
-const { string } = require('joi')
+// const { string } = require('joi')
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
+const JWT = require('jsonwebtoken')
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -29,6 +30,23 @@ UserSchema.pre("save", async function(){
     this.password = await bcrypt.hash(this.password, salt)
 })
 
+UserSchema.methods.createJWT = function(){
+    return JWT.sign({
+        userId: this._id,
+        name: this.name
+    }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_LIFETIME
+    })
+}
+
+UserSchema.methods.comparePassword = async function(userPassword){
+    return isCorrect = await bcrypt.compare(userPassword, this.password)   
+}
+
+// UserSchema.methods.verifyToken = async function(userToken){
+//     const payload = JWT.verify(userToken, process.env.JWT_SECRET)
+//     return payload
+// }
 
 
 module.exports = mongoose.model('User', UserSchema)
